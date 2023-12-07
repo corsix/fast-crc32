@@ -258,6 +258,103 @@ $ ./autobench -r 40 -i sse -p crc32 -a v4_v1 -i avx512_vpclmulqdq -p crc32 -a v4
 
 Sapphire Rapids improves VPCLMULQDQ on 64-byte registers to 1\*p5, meaning that AVX512 implementations can approach 4x the performance of implementations using 16-byte vectors (and _slightly exceed_ 4x when also gaining VPTERNLOGQ). One catch is that we now observe a 20% performance penalty for unaligned 64-byte loads, which the Chromium code doesn't take care to handle.
 
+## x86_64 AMD Rome performance (single core)
+
+Relevant `/proc/cpuinfo` of test machine:
+```
+vendor_id       : AuthenticAMD
+cpu family      : 23
+model           : 49
+model name      : AMD EPYC 7B12
+stepping        : 0
+microcode       : 0xffffffff
+cpu MHz         : 2249.998
+cache size      : 512 KB
+```
+
+| Implementation | Speed | Our equivalent | Speed |
+| -------------- | ----: | -------------- | ----: |
+| [Chromium vector](https://github.com/chromium/chromium/blob/359c9827be9d69e59da9398d03d88ca6840dd450/third_party/zlib/crc32_simd.c#L214-L345) | 12.89 GB/s | `-i sse -p crc32 -a v4_v1` | 12.84 GB/s |
+| [crc32_4k_three_way](https://www.corsix.org/content/fast-crc32c-4k) | 23.52 GB/s | `-i sse -p crc32c -a s3k4096e` | 23.08 GB/s |
+| [crc32_4k_pclmulqdq](https://www.corsix.org/content/fast-crc32c-4k) | 12.86 GB/s | `-i sse -p crc32c -a v4k4096e` | 12.89 GB/s |
+| [crc32_4k_fusion](https://www.corsix.org/content/fast-crc32c-4k) | 23.84 GB/s | `-i sse -p crc32c -a v4s3x3k4096e` | 22.62 GB/s |
+| retuned crc32_4k_fusion | N/A | `-i sse -p crc32c -a v1s3x3` | **31.16 GB/s** |
+
+To reproduce these measurements:
+
+```
+$ make bench autobench
+$ make -C third_party chromium_sse_crc32_v4_v1.so corsix4k_sse_crc32c_s3k4096e.so corsix4k_sse_crc32c_v4k4096e.so corsix4k_sse_crc32c_v4s3x3k4096e.so
+$ ./bench -r 40 third_party/chromium_sse_crc32_v4_v1.so third_party/corsix4k_sse_crc32c_s3k4096e.so third_party/corsix4k_sse_crc32c_v4k4096e.so third_party/corsix4k_sse_crc32c_v4s3x3k4096e.so
+$ ./autobench -r 40 -i sse -p crc32 -a v4_v1 -p crc32c -a s3k4096e,v4k4096e,v4s3x3k4096e,v1s3x3
+```
+
+## x86_64 AMD Milan performance (single core)
+
+Relevant `/proc/cpuinfo` of test machine:
+```
+vendor_id       : AuthenticAMD
+cpu family      : 25
+model           : 1
+model name      : AMD EPYC 7B13
+stepping        : 0
+microcode       : 0xffffffff
+cpu MHz         : 2450.000
+cache size      : 512 KB
+```
+
+| Implementation | Speed | Our equivalent | Speed |
+| -------------- | ----: | -------------- | ----: |
+| [Chromium vector](https://github.com/chromium/chromium/blob/359c9827be9d69e59da9398d03d88ca6840dd450/third_party/zlib/crc32_simd.c#L214-L345) | 12.82 GB/s | `-i sse -p crc32 -a v4_v1` | 12.85 GB/s |
+| [crc32_4k_three_way](https://www.corsix.org/content/fast-crc32c-4k) | 22.75 GB/s | `-i sse -p crc32c -a s3k4096e` | 23.55 GB/s |
+| [crc32_4k_pclmulqdq](https://www.corsix.org/content/fast-crc32c-4k) | 12.76 GB/s | `-i sse -p crc32c -a v4k4096e` | 12.86 GB/s |
+| [crc32_4k_fusion](https://www.corsix.org/content/fast-crc32c-4k) | 23.41 GB/s | `-i sse -p crc32c -a v4s3x3k4096e` | 22.64 GB/s |
+| retuned crc32_4k_fusion | N/A | `-i sse -p crc32c -a v1s4x2` | **31.76 GB/s** |
+
+To reproduce these measurements:
+
+```
+$ make bench autobench
+$ make -C third_party chromium_sse_crc32_v4_v1.so corsix4k_sse_crc32c_s3k4096e.so corsix4k_sse_crc32c_v4k4096e.so corsix4k_sse_crc32c_v4s3x3k4096e.so
+$ ./bench -r 40 third_party/chromium_sse_crc32_v4_v1.so third_party/corsix4k_sse_crc32c_s3k4096e.so third_party/corsix4k_sse_crc32c_v4k4096e.so third_party/corsix4k_sse_crc32c_v4s3x3k4096e.so
+$ ./autobench -r 40 -i sse -p crc32 -a v4_v1 -p crc32c -a s3k4096e,v4k4096e,v4s3x3k4096e,v1s4x2
+```
+
+## x86_64 AMD Genoa performance (single core)
+
+Relevant `/proc/cpuinfo` of test machine:
+```
+vendor_id       : AuthenticAMD
+cpu family      : 25
+model           : 17
+model name      : AMD EPYC 9B14
+stepping        : 1
+microcode       : 0xffffffff
+cpu MHz         : 2599.998
+cache size      : 1024 KB
+```
+
+| Implementation | Speed | Our equivalent | Speed |
+| -------------- | ----: | -------------- | ----: |
+| [Chromium vector](https://github.com/chromium/chromium/blob/359c9827be9d69e59da9398d03d88ca6840dd450/third_party/zlib/crc32_simd.c#L214-L345) | 13.73 GB/s | `-i sse -p crc32 -a v4_v1` | 13.72 GB/s |
+| [Chromium vector AVX512](https://github.com/chromium/chromium/blob/359c9827be9d69e59da9398d03d88ca6840dd450/third_party/zlib/crc32_simd.c#L24-L201) | 51.70 GB/s | `-i avx512_vpclmulqdq -p crc32 -a v4_v1` | 54.00 GB/s |
+| [crc32_4k_three_way](https://www.corsix.org/content/fast-crc32c-4k) | 26.27 GB/s | `-i sse -p crc32c -a s3k4096e` | 26.56 GB/s |
+| retuned crc32_4k_three_way | N/A | `-i sse -p crc32c -a s3` | 27.32 GB/s |
+| [crc32_4k_pclmulqdq](https://www.corsix.org/content/fast-crc32c-4k) | 13.73 GB/s | `-i sse -p crc32c -a v4k4096e` | 13.74 GB/s |
+| AVX512 crc32_4k_pclmulqdq | N/A | `-i avx512_vpclmulqdq -p crc32c -a v3x2` | 54.77 GB/s |
+| [crc32_4k_fusion](https://www.corsix.org/content/fast-crc32c-4k) | 28.47 GB/s | `-i sse -p crc32c -a v4s3x3k4096e` | 28.56 GB/s |
+| retuned crc32_4k_fusion | N/A | `-i sse -p crc32c -a v1s3x2` | 36.20 GB/s |
+| AVX512 crc32_4k_fusion | N/A | `-i avx512_vpclmulqdq -p crc32c -a v3s2x4` | **71.95 GB/s** |
+
+To reproduce these measurements:
+
+```
+$ make bench autobench
+$ make -C third_party chromium_sse_crc32_v4_v1.so chromium_avx512_vpclmulqdq_crc32_v4_v1.so corsix4k_sse_crc32c_s3k4096e.so corsix4k_sse_crc32c_v4k4096e.so corsix4k_sse_crc32c_v4s3x3k4096e.so
+$ ./bench -r 40 third_party/chromium_sse_crc32_v4_v1.so third_party/chromium_avx512_vpclmulqdq_crc32_v4_v1.so third_party/corsix4k_sse_crc32c_s3k4096e.so third_party/corsix4k_sse_crc32c_v4k4096e.so third_party/corsix4k_sse_crc32c_v4s3x3k4096e.so
+$ ./autobench -r 40 -i sse -p crc32 -a v4_v1 -i avx512_vpclmulqdq -p crc32 -a v4_v1 -i sse -p crc32c -a s3k4096e,s3,v4k4096e -i avx512_vpclmulqdq -a v3x2 -i sse -a v4s3x3k4096e,v1s3x2 -i avx512_vpclmulqdq -a v3s2x4
+```
+
 # Related reading
 
 Background mathematics:
