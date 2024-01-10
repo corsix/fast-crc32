@@ -53,7 +53,7 @@ static uint32_t xnmodp(uint64_t n) /* x^n mod P, in log(n) time */ {
   return acc;
 }
 
-CRC_AINLINE uint64x2_t crc_shift(uint32_t crc, uint32_t nbytes) {
+CRC_AINLINE uint64x2_t crc_shift(uint32_t crc, size_t nbytes) {
   return clmul_scalar(crc, xnmodp(nbytes * 8 - 33));
 }
 

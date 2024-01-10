@@ -845,7 +845,7 @@ static void need_crc_shift(void) {
   put_lit(b,   "return acc;\n");
   put_lit(b, "}\n\n");
 
-  put_fmt(b, "CRC_AINLINE %s crc_shift(uint32_t crc, uint32_t nbytes) {\n", g_vec16_type);
+  put_fmt(b, "CRC_AINLINE %s crc_shift(uint32_t crc, size_t nbytes) {\n", g_vec16_type);
   put_lit(b,   "return clmul_scalar(crc, xnmodp(nbytes * 8 - 33));\n");
   put_lit(b, "}\n\n");
 }
