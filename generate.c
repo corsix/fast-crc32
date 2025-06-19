@@ -959,7 +959,7 @@ static void emit_xor_scalar_into_vector(sbuf_t* b, const char* scalar, const cha
     put_fmt(b, "%s = _mm_xor_si128(_mm_cvtsi32_si128(%s), %s);\n", vector, scalar, vector);
     break;
   case ISA_AVX512_VPCLMULQDQ:
-    put_fmt(b, "%s = _mm512_xor_si512(_mm512_castsi128_si512(_mm_cvtsi32_si128(%s)), %s);\n", vector, scalar, vector);
+    put_fmt(b, "%s = _mm512_xor_si512(_mm512_zextsi128_si512(_mm_cvtsi32_si128(%s)), %s);\n", vector, scalar, vector);
     break;
   default:
     FATAL_ISA();
