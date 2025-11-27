@@ -1,4 +1,4 @@
-/* MIT licensed (both this program, and what it creates); see LICENSE.md */
+/* MIT or zlib licensed (both this program, and what it creates); see LICENSE.md */
 #include <stdarg.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -518,7 +518,7 @@ static void parse_args(int argc, const char* const* argv) {
     }
   }
   put_lit(b, " */\n");
-  put_lit(b, "/* MIT licensed */\n\n");
+  put_lit(b, "/* MIT or zlib licensed */\n\n");
 }
 
 /* Polynomial math helpers. */

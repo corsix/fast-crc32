@@ -1,4 +1,4 @@
-/* MIT licensed; see LICENSE.md */
+/* MIT or zlib licensed; see LICENSE.md */
 #include <dlfcn.h>
 #include <setjmp.h>
 #include <signal.h>
